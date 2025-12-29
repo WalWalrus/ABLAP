@@ -33,7 +33,6 @@ LOCATION_TABLE = {
 GRAINSANITY_ID_BASE = 2000
 ENEMYSANITY_ID_BASE = 3000
 
-
 def grainsanity_location_id(level_index: int, grain_amount: int) -> int:
     return GRAINSANITY_ID_BASE + (level_index * 100) + grain_amount
 
@@ -78,3 +77,15 @@ def build_enemysanity_locations(
             out[f"{lvl} - {pct}% Enemies"] = enemysanity_location_id(level_index, pct)
 
     return out
+
+ALL_GRAINSANITY_LOCATIONS: dict[str, int] = {
+    f"{level_name} - {amt} Grain": grainsanity_location_id(level_idx, amt)
+    for level_idx, level_name in LEVEL_NAMES.items()
+    for amt in range(1, 51)
+}
+
+ALL_ENEMYSANITY_LOCATIONS: dict[str, int] = {
+    f"{level_name} - {pct}% Enemies": enemysanity_location_id(level_idx, pct)
+    for level_idx, level_name in LEVEL_NAMES.items()
+    for pct in (25, 50, 75, 100)
+}

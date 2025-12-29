@@ -13,7 +13,10 @@ from .Locations import (
     LOCATION_TABLE,
     build_grainsanity_locations,
     build_enemysanity_locations,
+    ALL_GRAINSANITY_LOCATIONS,
+    ALL_ENEMYSANITY_LOCATIONS,
 )
+
 from .Options import BugsLifeOptions
 
 GOLD_BERRY_LEVELS = {1, 6, 10, 11, 14, 7, 12, 8, 15}
@@ -72,6 +75,7 @@ ENEMY_MAX_BY_LEVEL = {
     15: 16,
 }
 
+
 class BugsLifeWeb(WebWorld):
     theme = "stone"
     tutorials = []
@@ -79,6 +83,7 @@ class BugsLifeWeb(WebWorld):
 
 class VictoryLocation(Location):
     game: str = "A Bug's Life"
+
 
 class BugsLifeWorld(World):
     game = "A Bug's Life"
@@ -89,8 +94,11 @@ class BugsLifeWorld(World):
 
     item_name_to_id = ITEM_TABLE
     item_id_to_name = REVERSE_ITEM_TABLE
-    location_name_to_id = LOCATION_TABLE
-
+    location_name_to_id = {
+        **LOCATION_TABLE,
+        **ALL_GRAINSANITY_LOCATIONS,
+        **ALL_ENEMYSANITY_LOCATIONS,
+    }
     options_dataclass = BugsLifeOptions
     options: BugsLifeOptions
 
@@ -102,20 +110,26 @@ class BugsLifeWorld(World):
             for level_idx in LEVEL_NAMES.keys():
                 dynamic.update(build_grainsanity_locations(level_idx, step, 50))
 
-        if (self.options.enable_enemy_25.value or self.options.enable_enemy_50.value or self.options.enable_enemy_75.value or self.options.enable_enemy_100.value):
+        if (
+            self.options.enable_enemy_25.value
+            or self.options.enable_enemy_50.value
+            or self.options.enable_enemy_75.value
+            or self.options.enable_enemy_100.value
+        ):
             for level_idx in LEVEL_NAMES.keys():
                 max_e = ENEMY_MAX_BY_LEVEL.get(level_idx, 0)
-                dynamic.update(build_enemysanity_locations(
-                    level_idx,
-                    max_e,
-                    bool(self.options.enable_enemy_25.value),
-                    bool(self.options.enable_enemy_50.value),
-                    bool(self.options.enable_enemy_75.value),
-                    bool(self.options.enable_enemy_100.value),
-                ))
+                dynamic.update(
+                    build_enemysanity_locations(
+                        level_idx,
+                        max_e,
+                        bool(self.options.enable_enemy_25.value),
+                        bool(self.options.enable_enemy_50.value),
+                        bool(self.options.enable_enemy_75.value),
+                        bool(self.options.enable_enemy_100.value),
+                    )
+                )
 
         self._dynamic_location_table = dynamic
-        self.location_name_to_id = {**LOCATION_TABLE, **dynamic}
 
     def _location_enabled(self, loc_name: str) -> bool:
         suffix = loc_name.split(" - ", 1)[1] if " - " in loc_name else loc_name
@@ -154,6 +168,8 @@ class BugsLifeWorld(World):
                 75: bool(self.options.enable_enemy_75.value),
                 100: bool(self.options.enable_enemy_100.value),
             }.get(pct, False)
+
+        return True
 
     def create_regions(self) -> None:
         menu = Region("Menu", self.player, self.multiworld)
@@ -308,21 +324,51 @@ class BugsLifeWorld(World):
                     loc = self.multiworld.get_location(loc_name, self.player)
                 except KeyError:
                     continue
-                set_rule(loc, lambda state, li=level_idx, opts=options: any(option_satisfied(state, li, o) for o in opts))
+                set_rule(
+                    loc,
+                    lambda state, li=level_idx, opts=options: any(
+                        option_satisfied(state, li, o) for o in opts
+                    ),
+                )
 
-        self.multiworld.completion_condition[self.player] = lambda state: state.can_reach_location("Victory", self.player)
+        self.multiworld.completion_condition[self.player] = (
+            lambda state: state.can_reach_location("Victory", self.player)
+        )
 
     def fill_slot_data(self) -> Dict[str, Any]:
+        enable_level_complete = int(self.options.enable_level_complete.value)
+        enable_grain_all = int(self.options.enable_grain_all.value)
+        enable_grainsanity = int(self.options.enable_grainsanity.value)
+        grainsanity_step = int(self.options.grainsanity_step.value)
+        enable_flik_all = int(self.options.enable_flik_all.value)
+        enable_flik_individual = int(self.options.enable_flik_individual.value)
+        enable_enemy_25 = int(self.options.enable_enemy_25.value)
+        enable_enemy_50 = int(self.options.enable_enemy_50.value)
+        enable_enemy_75 = int(self.options.enable_enemy_75.value)
+        enable_enemy_100 = int(self.options.enable_enemy_100.value)
+
         return {
             "goal": int(self.options.goal.value),
-            "enable_level_complete": int(self.options.enable_level_complete.value),
-            "enable_grain_all": int(self.options.enable_grain_all.value),
-            "enable_flik_all": int(self.options.enable_flik_all.value),
-            "enable_flik_individual": int(self.options.enable_flik_individual.value),
-            "enable_grainsanity": int(self.options.enable_grainsanity.value),
-            "grainsanity_step": int(self.options.grainsanity_step.value),
-            "enable_enemy_25": int(self.options.enable_enemy_25.value),
-            "enable_enemy_50": int(self.options.enable_enemy_50.value),
-            "enable_enemy_75": int(self.options.enable_enemy_75.value),
-            "enable_enemy_100": int(self.options.enable_enemy_100.value),
+
+            "enable_level_complete": enable_level_complete,
+            "enable_grain_all": enable_grain_all,
+            "enable_grainsanity": enable_grainsanity,
+            "grainsanity_step": grainsanity_step,
+            "enable_flik_all": enable_flik_all,
+            "enable_flik_individual": enable_flik_individual,
+            "enable_enemy_25": enable_enemy_25,
+            "enable_enemy_50": enable_enemy_50,
+            "enable_enemy_75": enable_enemy_75,
+            "enable_enemy_100": enable_enemy_100,
+
+            "level_complete": enable_level_complete,
+            "grain_all": enable_grain_all,
+            "grainsanity": enable_grainsanity,
+            "step": grainsanity_step,
+            "flik_all": enable_flik_all,
+            "flik_individual": enable_flik_individual,
+            "enemy25": enable_enemy_25,
+            "enemy50": enable_enemy_50,
+            "enemy75": enable_enemy_75,
+            "enemy100": enable_enemy_100,
         }

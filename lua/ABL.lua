@@ -1,7 +1,7 @@
 ---------------------------------------------------------------------
 -- Debug
 ---------------------------------------------------------------------
-local DEBUG_MODE = false
+local DEBUG_MODE = true
 local dbg_enemy_last = {
   level = nil,
   count = nil,
@@ -175,27 +175,39 @@ local function load_config()
     enemysanity_75 = false
     enemysanity_100 = false
 
-    local handlers = {
-        enable_grain_all = function(v) grain_all = (v == "1") end,
-        enable_grainsanity = function(v) grainsanity_enabled = (v == "1") end,
-        grainsanity_step = function(v) grainsanity_step = tonumber(v) or 10 end,
-        enable_enemy_25 = function(v) enemysanity_25 = (v == "1") end,
-        enable_enemy_50 = function(v) enemysanity_50 = (v == "1") end,
-        enable_enemy_75 = function(v) enemysanity_75 = (v == "1") end,
-        enable_enemy_100 = function(v) enemysanity_100 = (v == "1") end,
-        enable_flik_individual = function(v) flik_individual = (v == "1") end,
-        enable_flik_all = function(v) flik_all = (v == "1") end,
-    }
+    local function parse_bool(v)
+        v = tostring(v):lower()
+        return (v == "1" or v == "true" or v == "yes" or v == "on")
+    end
 
     local f = io.open(configPath, "r")
     if not f then return end
+
     for line in f:lines() do
         local k, v = line:match("^(%S+)%s*=%s*(%S+)")
         if k and v then
-            local h = handlers[k]
-            if h then h(v) end
+            if k == "enable_grain_all" or k == "grain_all" then
+                grain_all = parse_bool(v)
+            elseif k == "enable_grainsanity" or k == "grainsanity" then
+                grainsanity_enabled = parse_bool(v)
+            elseif k == "grainsanity_step" or k == "step" then
+                grainsanity_step = tonumber(v) or 10
+            elseif k == "enable_enemy_25" or k == "enemy25" then
+                enemysanity_25 = parse_bool(v)
+            elseif k == "enable_enemy_50" or k == "enemy50" then
+                enemysanity_50 = parse_bool(v)
+            elseif k == "enable_enemy_75" or k == "enemy75" then
+                enemysanity_75 = parse_bool(v)
+            elseif k == "enable_enemy_100" or k == "enemy100" then
+                enemysanity_100 = parse_bool(v)
+            elseif k == "enable_flik_individual" or k == "flik_individual" then
+                flik_individual = parse_bool(v)
+            elseif k == "enable_flik_all" or k == "flik_all" then
+                flik_all = parse_bool(v)
+            end
         end
     end
+
     f:close()
 end
 

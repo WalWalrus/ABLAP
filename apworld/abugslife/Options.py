@@ -104,7 +104,7 @@ class EnableEnemy75PctChecks(Toggle):
 
 
 class EnableEnemy100PctChecks(Toggle):
-    """Adds checks for killing ~75% of enemies in a level.
+    """Adds checks for killing ~100% of enemies in a level.
 
     Access rules are NOT implemented yet (can softlock).
     """
